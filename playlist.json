@@ -1,16 +1,16 @@
 {
-  "_comentario": "Lista de anuncios. Para anadir uno: sube la imagen a su carpeta y escribe aqui una linea mas. Para quitarlo, borra su linea.",
+  "_comentario": "Anuncios en pantalla. Para cambiar de cliente basta con cambiar los nombres de archivo de esta lista; los que no aparezcan aqui se quedan en el repositorio sin mostrarse.",
 
   "duracionImagen": 8,
   "orden": "secuencial",
 
   "items": [
-    { "src": "anuncios/completa/01-plataforma.svg" },
+    { "src": "anuncios/completa/01-pocatino.svg" },
 
-    { "src": "anuncios/lateral/01-plataforma.svg", "zona": "lateral" },
-    { "src": "anuncios/lateral/02-digitaliza.svg", "zona": "lateral" },
+    { "src": "anuncios/lateral/01-pocatino-waffles.svg", "zona": "lateral" },
+    { "src": "anuncios/lateral/02-pocatino-copa.svg", "zona": "lateral" },
 
-    { "src": "anuncios/inferior/01-plataforma.svg", "zona": "inferior" },
-    { "src": "anuncios/inferior/02-servicios.svg", "zona": "inferior" }
+    { "src": "anuncios/inferior/01-pocatino-marca.svg", "zona": "inferior" },
+    { "src": "anuncios/inferior/02-pocatino-comes.svg", "zona": "inferior" }
   ]
 }
