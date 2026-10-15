@@ -1,0 +1,19 @@
+{
+  "_comentario": "Como sale la app recien instalada, antes de que nadie toque nada. Se aplica SIEMPRE, haya o no anuncios en el dispositivo. Edita este archivo y recompila para repartir televisores ya configurados.",
+
+  "modo": "marco",
+  "videoMarco": "https://www.youtube.com/watch?v=AznpEyEwqT0",
+
+  "marcoPosicion": "izquierda",
+  "marcoLateral": 22,
+  "marcoInferior": 20,
+
+  "marcoCiclo": "intervalo",
+  "marcoCadaSegundos": 180,
+  "marcoDuraSegundos": 30,
+  "marcoEfecto": "apertura",
+  "marcoVelocidad": 800,
+
+  "duracionImagen": 8,
+  "orden": "secuencial"
+}

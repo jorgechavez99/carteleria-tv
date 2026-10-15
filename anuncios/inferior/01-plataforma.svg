@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 216" width="1920" height="216">
+  <rect width="1920" height="216" fill="#ffffff"/>
+  <rect width="1920" height="7" fill="#29B8E8"/>
+  
+  <g transform="translate(60,48) scale(0.42)">
+    <circle cx="78"  cy="198" r="42" fill="#0E7CA0"/>
+    <circle cx="48"  cy="118" r="35" fill="#0D94C4"/>
+    <circle cx="92"  cy="52"  r="30" fill="#1BA8DC"/>
+    <circle cx="170" cy="24"  r="21" fill="#29B8E8"/>
+    <circle cx="240" cy="48"  r="15" fill="#45C6EE"/>
+    <text x="290" y="152" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="128"
+          letter-spacing="-2" fill="#4A4A4A">assoflex</text>
+    <text x="292" y="202" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="29"
+          fill="#6D6D6D">Soluciones de Innovación Empresarial</text>
+  </g>
+  <rect x="440" y="52" width="3" height="112" fill="#d8dde2"/>
+  <text x="488" y="106" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#16456B">LA PLATAFORMA IDEAL PARA TU NEGOCIO</text>
+  <text x="490" y="152" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="30" fill="#4A4A4A">Una solución flexible, intuitiva y fácil de usar</text>
+  <rect x="1490" y="46" width="370" height="124" rx="14" fill="#0E7CA0"/>
+  <text x="1675" y="100" text-anchor="middle" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="26" fill="#a9dcee">Más información</text>
+  <text x="1675" y="146" text-anchor="middle" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="38" font-weight="700" fill="#ffffff">assoflex.com</text>
+</svg>

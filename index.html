@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Publicidad TV</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- MODO PANTALLA COMPLETA: un solo reproductor ocupando todo -->
+  <div id="zonaPrincipal" class="zona zona-principal"></div>
+
+  <!-- MODO MARCO (L-bar): video en el recuadro y publicidad en las bandas -->
+  <div id="marco" class="marco oculto">
+    <div class="marco-video">
+      <!-- Lo rellena el JS: un <video> para archivos y streams, o el
+           reproductor incrustado de YouTube cuando el enlace es suyo -->
+      <div id="reproductorMarco" class="reproductor-marco"></div>
+      <div id="avisoVideo" class="aviso-video oculto"></div>
+    </div>
+    <div id="zonaLateral" class="zona zona-lateral"></div>
+    <div id="zonaInferior" class="zona zona-inferior"></div>
+  </div>
+
+  <!-- Barra inferior opcional (texto corrido) -->
+  <div id="ticker" class="ticker oculto"><span id="tickerTexto"></span></div>
+
+  <!-- Logo fijo en esquina, opcional -->
+  <img id="logo" class="logo oculto" alt="">
+
+  <!-- Panel de estado: se abre con OK en el control remoto -->
+  <div id="panel" class="panel oculto">
+    <h1>Publicidad TV</h1>
+    <dl id="panelDatos"></dl>
+    <div class="panel-acciones">
+      <button type="button" id="btnAjustes" class="boton">Abrir ajustes</button>
+      <button type="button" id="btnCarpeta" class="boton oculto">Elegir carpeta de anuncios (USB)</button>
+      <button type="button" id="btnOlvidarCarpeta" class="boton oculto">Dejar de usar esa carpeta</button>
+    </div>
+    <p class="pista">Pulsa Atras para cerrar</p>
+  </div>
+
+  <!-- Ajustes: se rellenan con el mando, el televisor abre su teclado al entrar en un campo -->
+  <div id="ajustes" class="ajustes oculto">
+    <h1>Ajustes</h1>
+    <form id="formAjustes" autocomplete="off">
+
+      <label class="campo">
+        <span class="etiqueta">Modo de pantalla</span>
+        <select name="modo">
+          <option value="completa">Pantalla completa</option>
+          <option value="marco">Marco con video (L)</option>
+        </select>
+        <small>El modo marco encoge el video a un recuadro y pone tu publicidad alrededor.</small>
+      </label>
+
+      <label class="campo">
+        <span class="etiqueta">Enlace del video del recuadro</span>
+        <input name="videoMarco" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=...">
+        <small>Un enlace de YouTube, un stream HLS (.m3u8) o un video (.mp4). Solo se usa en modo marco.</small>
+      </label>
+
+      <label class="campo">
+        <span class="etiqueta">Enlace del playlist remoto</span>
+        <input name="remoteUrl" type="url" inputmode="url" placeholder="https://servidor.com/playlist.json">
+        <small>Opcional. Deja vacio para usar solo la carpeta del dispositivo.</small>
+      </label>
+
+      <label class="campo">
+        <span class="etiqueta">Posicion del recuadro</span>
+        <select name="marcoPosicion">
+          <option value="izquierda">Bandas a la izquierda y abajo</option>
+          <option value="derecha">Bandas a la derecha y abajo</option>
+        </select>
+      </label>
+
+      <div class="campo-doble">
+        <label class="campo">
+          <span class="etiqueta">Ancho de la banda lateral (%)</span>
+          <input name="marcoLateral" type="number" min="10" max="45" step="1">
+        </label>
+        <label class="campo">
+          <span class="etiqueta">Alto de la banda inferior (%)</span>
+          <input name="marcoInferior" type="number" min="10" max="45" step="1">
+        </label>
+      </div>
+
+      <label class="campo">
+        <span class="etiqueta">Aparicion de la L</span>
+        <select name="marcoCiclo">
+          <option value="siempre">Siempre visible</option>
+          <option value="intervalo">Va y viene cada cierto tiempo</option>
+        </select>
+        <small>Con la segunda opcion, el video se ve a pantalla completa y la L asoma cada X segundos.</small>
+      </label>
+
+      <div class="campo-doble">
+        <label class="campo">
+          <span class="etiqueta">Aparece cada (segundos)</span>
+          <input name="marcoCadaSegundos" type="number" min="5" max="3600" step="5">
+        </label>
+        <label class="campo">
+          <span class="etiqueta">Se queda (segundos)</span>
+          <input name="marcoDuraSegundos" type="number" min="2" max="3600" step="5">
+        </label>
+      </div>
+
+      <label class="campo">
+        <span class="etiqueta">Efecto de entrada</span>
+        <select name="marcoEfecto">
+          <option value="fundido">Fundido suave (low exposure)</option>
+          <option value="apertura">Apertura horizontal (horizontal open)</option>
+          <option value="deslizar">Deslizar desde el borde</option>
+          <option value="zoom">Acercamiento</option>
+          <option value="ninguno">Sin efecto, de golpe</option>
+        </select>
+      </label>
+
+      <label class="campo">
+        <span class="etiqueta">Duracion del efecto (milisegundos)</span>
+        <input name="marcoVelocidad" type="number" min="0" max="5000" step="100">
+        <small>800 es un movimiento natural. Por debajo de 300 se nota brusco.</small>
+      </label>
+
+      <div class="campo-doble">
+        <label class="campo">
+          <span class="etiqueta">Segundos por imagen</span>
+          <input name="duracionImagen" type="number" min="2" max="300" step="1">
+        </label>
+        <label class="campo">
+          <span class="etiqueta">Orden</span>
+          <select name="orden">
+            <option value="secuencial">Secuencial</option>
+            <option value="aleatorio">Aleatorio</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="campo">
+        <span class="etiqueta">Texto corrido inferior</span>
+        <input name="ticker" type="text" placeholder="Deja vacio para ocultarlo">
+      </label>
+
+      <div class="acciones">
+        <button type="submit" class="boton boton-principal">Guardar y aplicar</button>
+        <button type="button" class="boton" id="btnCerrarAjustes">Cancelar</button>
+        <button type="button" class="boton boton-peligro" id="btnRestablecer">Restablecer</button>
+      </div>
+
+      <p class="pista" id="avisoAjustes">Estos ajustes se guardan en el dispositivo y mandan sobre el config.json.</p>
+    </form>
+  </div>
+
+  <!-- Aviso cuando no hay nada que mostrar -->
+  <div id="vacio" class="vacio oculto">
+    <h1>Sin contenido</h1>
+    <p id="vacioDetalle"></p>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

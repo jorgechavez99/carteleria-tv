@@ -1,0 +1,16 @@
+{
+  "_comentario": "Lista de anuncios. Para anadir uno: sube la imagen a su carpeta y escribe aqui una linea mas. Para quitarlo, borra su linea.",
+
+  "duracionImagen": 8,
+  "orden": "secuencial",
+
+  "items": [
+    { "src": "anuncios/completa/01-plataforma.svg" },
+
+    { "src": "anuncios/lateral/01-plataforma.svg", "zona": "lateral" },
+    { "src": "anuncios/lateral/02-digitaliza.svg", "zona": "lateral" },
+
+    { "src": "anuncios/inferior/01-plataforma.svg", "zona": "inferior" },
+    { "src": "anuncios/inferior/02-servicios.svg", "zona": "inferior" }
+  ]
+}

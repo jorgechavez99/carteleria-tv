@@ -1,0 +1,326 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  /* Las cambia el JS segun los ajustes */
+  --banda-lateral: 22%;
+  --banda-inferior: 20%;
+  --velocidad: 800ms;      /* lo que tarda la L en entrar o salir */
+  --acento: #4fc3f7;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  font-family: "Segoe UI", Roboto, system-ui, sans-serif;
+  /* El cursor estorba en una TV */
+  cursor: none;
+  user-select: none;
+}
+
+/* ===================== Zonas de publicidad ===================== */
+/* Una zona es un hueco donde rota un reproductor. En pantalla completa
+   hay una sola; en modo marco hay dos (lateral e inferior). */
+
+.zona {
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+
+.zona-principal { position: absolute; inset: 0; }
+
+/* Capas que se alternan para el crossfade (las crea el JS) */
+.capa {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 600ms ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.capa.visible { opacity: 1; }
+
+.capa img, .capa video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+body.ajuste-cover .capa img,
+body.ajuste-cover .capa video { object-fit: cover; }
+
+/* Un anuncio puede pedir su propio ajuste */
+.capa img.cover, .capa video.cover { object-fit: cover; }
+.capa img.contain, .capa video.contain { object-fit: contain; }
+
+/* Las bandas NO recortan: llevan texto, y un recorte se come justo la
+   primera letra de cada linea. Si el anuncio tiene la medida indicada
+   encaja al milimetro; si no, se vera entero con un margen. */
+.zona-lateral .capa img, .zona-inferior .capa img { object-fit: contain; }
+
+/* El margen, cuando lo hay, en blanco: los anuncios de banda suelen
+   tener fondo claro y una franja negra cantaria mucho. */
+.zona-lateral, .zona-inferior { background: #fff; }
+
+/* ===================== Modo marco (L-bar) ===================== */
+
+/* Se coloca todo en absoluto, no en grid: asi el video puede encogerse y
+   estirarse con una transicion, que es el efecto de la television. */
+
+.marco {
+  position: absolute;
+  inset: 0;
+  background: #000;
+}
+
+.marco-video {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: var(--banda-lateral);
+  bottom: var(--banda-inferior);
+  background: #000;
+  transition:
+    left var(--velocidad) ease,
+    right var(--velocidad) ease,
+    bottom var(--velocidad) ease;
+}
+
+.zona-lateral {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: var(--banda-inferior);
+  width: var(--banda-lateral);
+}
+
+.zona-inferior {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--banda-inferior);
+}
+
+/* Bandas al otro lado */
+.marco[data-posicion="derecha"] .marco-video { left: 0; right: var(--banda-lateral); }
+.marco[data-posicion="derecha"] .zona-lateral { left: auto; right: 0; }
+
+/* ---- La L recogida: el video pasa a ocupar la pantalla entera ---- */
+
+.marco.replegado .marco-video { left: 0; right: 0; bottom: 0; }
+
+.zona-lateral, .zona-inferior {
+  transition:
+    opacity var(--velocidad) ease,
+    transform var(--velocidad) ease;
+}
+
+/* Fundido: las bandas se desvanecen (low exposure) */
+.marco[data-efecto="fundido"].replegado .zona-lateral,
+.marco[data-efecto="fundido"].replegado .zona-inferior { opacity: 0; }
+
+/* Apertura: se abren desde su propio borde (horizontal open) */
+.marco[data-efecto="apertura"] .zona-lateral { transform-origin: left center; }
+.marco[data-efecto="apertura"][data-posicion="derecha"] .zona-lateral { transform-origin: right center; }
+.marco[data-efecto="apertura"] .zona-inferior { transform-origin: center bottom; }
+.marco[data-efecto="apertura"].replegado .zona-lateral { transform: scaleX(0); }
+.marco[data-efecto="apertura"].replegado .zona-inferior { transform: scaleY(0); }
+
+/* Deslizar: entran desde fuera de la pantalla */
+.marco[data-efecto="deslizar"].replegado .zona-lateral { transform: translateX(-100%); }
+.marco[data-efecto="deslizar"][data-posicion="derecha"].replegado .zona-lateral { transform: translateX(100%); }
+.marco[data-efecto="deslizar"].replegado .zona-inferior { transform: translateY(100%); }
+
+/* Zoom: se acercan apareciendo */
+.marco[data-efecto="zoom"].replegado .zona-lateral,
+.marco[data-efecto="zoom"].replegado .zona-inferior { transform: scale(.75); opacity: 0; }
+
+/* Sin efecto: aparece y desaparece de golpe */
+.marco[data-efecto="ninguno"] .marco-video,
+.marco[data-efecto="ninguno"] .zona-lateral,
+.marco[data-efecto="ninguno"] .zona-inferior { transition: none; }
+.marco[data-efecto="ninguno"].replegado .zona-lateral,
+.marco[data-efecto="ninguno"].replegado .zona-inferior { opacity: 0; }
+
+.reproductor-marco { position: absolute; inset: 0; }
+
+.reproductor-marco video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+/* El reproductor de YouTube llega como iframe: se estira al hueco y el
+   propio reproductor mantiene la proporcion del video por dentro. */
+.reproductor-marco iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: #000;
+}
+
+.aviso-video {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2vh 3vw;
+  font-size: 2.2vh;
+  color: #8ea0b8;
+  background: #000;
+}
+
+/* ===================== Texto corrido y logo ===================== */
+
+.ticker {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 7vh;
+  min-height: 48px;
+  background: rgba(0, 0, 0, .72);
+  border-top: 2px solid rgba(255, 255, 255, .15);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  z-index: 5;
+}
+.ticker span {
+  display: inline-block;
+  padding-left: 100%;
+  font-size: 3.4vh;
+  letter-spacing: .02em;
+  animation: desplazar 28s linear infinite;
+}
+@keyframes desplazar {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+
+.logo {
+  position: absolute;
+  top: 3vh;
+  right: 3vw;
+  max-width: 14vw;
+  max-height: 12vh;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, .6));
+  z-index: 5;
+}
+
+/* ===================== Panel de estado ===================== */
+
+.panel {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 10, 14, .96);
+  padding: 6vh 8vw;
+  overflow-y: auto;
+  z-index: 20;
+}
+.panel h1 { font-size: 4.2vh; margin-bottom: 3vh; font-weight: 600; }
+.panel dl { display: grid; grid-template-columns: max-content 1fr; gap: 1.4vh 3vw; font-size: 2.6vh; }
+.panel dt { color: #8ea0b8; }
+.panel dd { color: #fff; word-break: break-all; }
+.panel-acciones { margin-top: 4vh; }
+.pista { margin-top: 3vh; color: #6b7a90; font-size: 2.2vh; }
+
+/* ===================== Ajustes ===================== */
+
+.ajustes {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 10, 14, .98);
+  padding: 5vh 8vw;
+  overflow-y: auto;
+  z-index: 30;
+}
+.ajustes h1 { font-size: 4.2vh; margin-bottom: 3vh; font-weight: 600; }
+
+.campo { display: block; margin-bottom: 2.6vh; }
+.campo .etiqueta {
+  display: block;
+  font-size: 2.3vh;
+  color: #8ea0b8;
+  margin-bottom: .8vh;
+}
+.campo small {
+  display: block;
+  margin-top: .6vh;
+  font-size: 1.8vh;
+  color: #5d6b80;
+}
+
+.campo-doble { display: grid; grid-template-columns: 1fr 1fr; gap: 0 3vw; }
+
+.ajustes input,
+.ajustes select {
+  width: 100%;
+  font-size: 2.4vh;
+  font-family: inherit;
+  padding: 1.2vh 1.4vw;
+  color: #fff;
+  background: #161d28;
+  border: 2px solid #2b3747;
+  border-radius: 8px;
+}
+.ajustes input::placeholder { color: #4a586b; }
+
+.acciones { display: flex; gap: 2vw; margin-top: 4vh; flex-wrap: wrap; }
+
+.boton {
+  font-size: 2.3vh;
+  font-family: inherit;
+  padding: 1.4vh 2.4vw;
+  color: #fff;
+  background: #222d3d;
+  border: 2px solid #35465c;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.boton-principal { background: var(--acento); border-color: var(--acento); color: #04222e; font-weight: 600; }
+.boton-peligro { border-color: #6b3540; color: #ff9aa8; }
+
+/* En una TV el foco tiene que cantar: es la unica pista de donde estas */
+.ajustes input:focus,
+.ajustes select:focus,
+.boton:focus {
+  outline: 4px solid var(--acento);
+  outline-offset: 3px;
+  background: #1d2938;
+}
+.boton-principal:focus { background: #7fd4fa; }
+
+/* El campo enfocado no debe quedar pegado al borde al desplazarse */
+.campo, .acciones { scroll-margin: 12vh; }
+
+/* ===================== Avisos ===================== */
+
+.vacio {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2vh;
+  text-align: center;
+  padding: 0 8vw;
+  z-index: 10;
+}
+.vacio h1 { font-size: 5vh; font-weight: 600; }
+.vacio p { font-size: 2.8vh; color: #8ea0b8; line-height: 1.5; }
+
+.guardado {
+  color: #7ee08a !important;
+}
+
+.oculto { display: none !important; }

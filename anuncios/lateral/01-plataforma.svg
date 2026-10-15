@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 422 864" width="422" height="864">
+  <rect width="422" height="864" fill="#ffffff"/>
+  <rect width="422" height="10" fill="#29B8E8"/>
+  
+  <g transform="translate(26,54) scale(0.48)">
+    <circle cx="78"  cy="198" r="42" fill="#0E7CA0"/>
+    <circle cx="48"  cy="118" r="35" fill="#0D94C4"/>
+    <circle cx="92"  cy="52"  r="30" fill="#1BA8DC"/>
+    <circle cx="170" cy="24"  r="21" fill="#29B8E8"/>
+    <circle cx="240" cy="48"  r="15" fill="#45C6EE"/>
+    <text x="290" y="152" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="128"
+          letter-spacing="-2" fill="#4A4A4A">assoflex</text>
+    <text x="292" y="202" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="29"
+          fill="#6D6D6D">Soluciones de Innovación Empresarial</text>
+  </g>
+  <text x="34" y="330" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#16456B">LA PLATAFORMA</text>
+  <text x="34" y="382" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#16456B">IDEAL PARA TU</text>
+  <text x="34" y="434" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="40" font-weight="700" fill="#16456B">NEGOCIO</text>
+  <rect x="34" y="466" width="110" height="6" rx="3" fill="#29B8E8"/>
+  <text x="34" y="536" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="27" fill="#4A4A4A">Una solución flexible,</text>
+  <text x="34" y="574" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="27" fill="#4A4A4A">intuitiva y fácil de usar</text>
+  <g transform="translate(34,650)">
+    <circle cx="13" cy="13" r="13" fill="#0D94C4"/>
+    <text x="42" y="22" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="25" fill="#4A4A4A">Facturación</text>
+    <circle cx="13" cy="73" r="13" fill="#1BA8DC"/>
+    <text x="42" y="82" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="25" fill="#4A4A4A">Inventario</text>
+    <circle cx="13" cy="133" r="13" fill="#29B8E8"/>
+    <text x="42" y="142" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="25" fill="#4A4A4A">Contabilidad</text>
+  </g>
+  <rect y="856" width="422" height="8" fill="#0E7CA0"/>
+</svg>

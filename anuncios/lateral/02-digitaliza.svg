@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 422 864" width="422" height="864">
+  <defs>
+    <linearGradient id="fondo" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0%" stop-color="#0E7CA0"/>
+      <stop offset="100%" stop-color="#0a5f7d"/>
+    </linearGradient>
+  </defs>
+  <rect width="422" height="864" fill="url(#fondo)"/>
+  <circle cx="392" cy="120" r="150" fill="#ffffff" opacity="0.05"/>
+  <circle cx="40" cy="744" r="110" fill="#ffffff" opacity="0.04"/>
+  
+  <g transform="translate(26,48) scale(0.46)">
+    <circle cx="78"  cy="198" r="42" fill="#0E7CA0"/>
+    <circle cx="48"  cy="118" r="35" fill="#0D94C4"/>
+    <circle cx="92"  cy="52"  r="30" fill="#1BA8DC"/>
+    <circle cx="170" cy="24"  r="21" fill="#29B8E8"/>
+    <circle cx="240" cy="48"  r="15" fill="#45C6EE"/>
+    <text x="290" y="152" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="128"
+          letter-spacing="-2" fill="#ffffff">assoflex</text>
+    <text x="292" y="202" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="29"
+          fill="#a9dcee">Soluciones de Innovación Empresarial</text>
+  </g>
+  <text x="34" y="352" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#ffffff">Digitaliza</text>
+  <text x="34" y="404" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="44" font-weight="700" fill="#ffffff">tu negocio</text>
+  <rect x="34" y="436" width="110" height="6" rx="3" fill="#45C6EE"/>
+  <text x="34" y="506" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="26" fill="#cfeaf5">Software de gestión</text>
+  <text x="34" y="544" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="26" fill="#cfeaf5">hecho a tu medida</text>
+  <g transform="translate(34,660)">
+    <rect width="354" height="96" rx="12" fill="#ffffff" opacity="0.12"/>
+    <text x="24" y="40" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="24" fill="#cfeaf5">Solicita tu demo</text>
+    <text x="24" y="76" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-size="30" font-weight="700" fill="#ffffff">assoflex.com</text>
+  </g>
+</svg>
