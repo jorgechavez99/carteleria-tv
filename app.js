@@ -64,6 +64,7 @@ function barajar(lista) {
 var CONFIG_POR_DEFECTO = {
   modo: 'completa',       // 'completa' | 'marco'
   videoMarco: '',         // stream HLS o video del recuadro (solo en modo marco)
+  videoSonido: 'no',      // 'no' | 'si'. Con sonido, algunos TVs no arrancan solos
   marcoPosicion: 'izquierda',
   marcoLateral: 22,       // ancho de la banda lateral, en % de la pantalla
   marcoInferior: 20,      // alto de la banda inferior, en %
@@ -499,7 +500,10 @@ function segundosDeInicio(enlace) {
 function enlaceIncrustadoYouTube(enlace, id) {
   var parametros = [
     'autoplay=1',
-    'mute=1',          // sin silencio ningun navegador arranca solo
+    // El silencio es lo que permite que el video arranque solo. Con sonido,
+    // muchos navegadores se niegan y la pantalla se queda congelada.
+    'mute=' + (config.videoSonido === 'si' ? '0' : '1'),
+    'enablejsapi=1',   // para poder quitar el silencio tras un toque
     'controls=0',
     'disablekb=1',
     'fs=0',
@@ -555,7 +559,7 @@ function configurarVideoMarco() {
   }
 
   var video = document.createElement('video');
-  video.muted = true;
+  video.muted = config.videoSonido !== 'si';
   video.autoplay = true;
   video.playsInline = true;
   video.controls = false;
@@ -853,6 +857,45 @@ document.getElementById('btnRestablecer').addEventListener('click', function () 
 });
 
 // ------------------------------------------------------- control por teclado
+
+/*
+ * Tocar la pantalla abre el panel. Es imprescindible en el navegador de un
+ * televisor: ahi no hay una tecla OK que llegue como Enter, asi que sin esto
+ * no habria manera de entrar en los ajustes.
+ */
+document.addEventListener('click', function (e) {
+  // Un toque cuenta como permiso del usuario, que es justo lo que los
+  // navegadores exigen antes de dejar sonar nada
+  activarSonidoSiProcede();
+
+  var panel = document.getElementById('panel');
+  var ajustes = document.getElementById('ajustes');
+
+  // Dentro del panel o de los ajustes mandan sus propios botones
+  if (panel.contains(e.target) || ajustes.contains(e.target)) return;
+  if (ajustesAbiertos()) return;
+
+  if (panelAbierto()) cerrarTodo(); else abrirPanel();
+});
+
+/** Quita el silencio al video del recuadro, si se pidio sonido. */
+function activarSonidoSiProcede() {
+  if (config.videoSonido !== 'si') return;
+
+  var marco = document.querySelector('#reproductorMarco iframe');
+  if (marco && marco.contentWindow) {
+    // La API de YouTube escucha ordenes por mensaje
+    try {
+      marco.contentWindow.postMessage(
+        '{"event":"command","func":"unMute","args":""}', '*'
+      );
+    } catch (e) { /* si el navegador no deja, se queda en silencio */ }
+    return;
+  }
+
+  var video = document.querySelector('#reproductorMarco video');
+  if (video) video.muted = false;
+}
 
 document.addEventListener('keydown', function (e) {
   // Con los ajustes abiertos, las flechas sirven para moverse por el

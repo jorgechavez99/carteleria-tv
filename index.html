@@ -17,6 +17,10 @@
       <!-- Lo rellena el JS: un <video> para archivos y streams, o el
            reproductor incrustado de YouTube cuando el enlace es suyo -->
       <div id="reproductorMarco" class="reproductor-marco"></div>
+      <!-- El reproductor de YouTube llega en un iframe y se queda los toques,
+           asi que esta capa invisible va encima para recogerlos: sin ella no
+           habria forma de abrir los ajustes mientras el video ocupa todo. -->
+      <div class="captura-toques"></div>
       <div id="avisoVideo" class="aviso-video oculto"></div>
     </div>
     <div id="zonaLateral" class="zona zona-lateral"></div>
@@ -59,6 +63,15 @@
         <span class="etiqueta">Enlace del video del recuadro</span>
         <input name="videoMarco" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=...">
         <small>Un enlace de YouTube, un stream HLS (.m3u8) o un video (.mp4). Solo se usa en modo marco.</small>
+      </label>
+
+      <label class="campo">
+        <span class="etiqueta">Sonido del video</span>
+        <select name="videoSonido">
+          <option value="no">Silenciado</option>
+          <option value="si">Con sonido</option>
+        </select>
+        <small>Silenciado es lo unico que garantiza que el video arranque solo. Con sonido, algunos televisores se quedan esperando a que alguien pulse.</small>
       </label>
 
       <label class="campo">

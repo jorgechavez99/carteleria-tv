@@ -165,6 +165,15 @@ body.ajuste-cover .capa video { object-fit: cover; }
   background: #000;
 }
 
+/* Capa invisible sobre el video: recoge los toques que el iframe de YouTube
+   se quedaria, para que siempre se pueda abrir el panel de ajustes. */
+.captura-toques {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: transparent;
+}
+
 .aviso-video {
   position: absolute;
   inset: 0;
