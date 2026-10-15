@@ -1,16 +1,20 @@
 {
-  "_comentario": "Anuncios en pantalla. Para cambiar de cliente basta con cambiar los nombres de archivo de esta lista; los que no aparezcan aqui se quedan en el repositorio sin mostrarse.",
+  "_comentario": "Cada anuncio lleva su campana. En los ajustes de la pantalla se elige que cliente sale; con 'Todas' se mezclan. Para anadir un cliente nuevo, sube sus imagenes y escribelas aqui con su campana.",
 
   "duracionImagen": 8,
   "orden": "secuencial",
 
   "items": [
-    { "src": "anuncios/completa/01-pocatino.svg" },
+    { "src": "anuncios/completa/01-pocatino.svg", "campana": "Pocatino" },
+    { "src": "anuncios/lateral/01-pocatino-waffles.svg", "zona": "lateral", "campana": "Pocatino" },
+    { "src": "anuncios/lateral/02-pocatino-copa.svg", "zona": "lateral", "campana": "Pocatino" },
+    { "src": "anuncios/inferior/01-pocatino-marca.svg", "zona": "inferior", "campana": "Pocatino" },
+    { "src": "anuncios/inferior/02-pocatino-comes.svg", "zona": "inferior", "campana": "Pocatino" },
 
-    { "src": "anuncios/lateral/01-pocatino-waffles.svg", "zona": "lateral" },
-    { "src": "anuncios/lateral/02-pocatino-copa.svg", "zona": "lateral" },
-
-    { "src": "anuncios/inferior/01-pocatino-marca.svg", "zona": "inferior" },
-    { "src": "anuncios/inferior/02-pocatino-comes.svg", "zona": "inferior" }
+    { "src": "anuncios/completa/01-plataforma.svg", "campana": "Assoflex" },
+    { "src": "anuncios/lateral/01-plataforma.svg", "zona": "lateral", "campana": "Assoflex" },
+    { "src": "anuncios/lateral/02-digitaliza.svg", "zona": "lateral", "campana": "Assoflex" },
+    { "src": "anuncios/inferior/01-plataforma.svg", "zona": "inferior", "campana": "Assoflex" },
+    { "src": "anuncios/inferior/02-servicios.svg", "zona": "inferior", "campana": "Assoflex" }
   ]
 }

@@ -11,5 +11,6 @@
   "marcoEfecto": "apertura",
   "marcoVelocidad": 800,
   "duracionImagen": 8,
-  "orden": "secuencial"
+  "orden": "secuencial",
+  "campana": ""
 }

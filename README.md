@@ -4,6 +4,33 @@ Esta es la pantalla publicitaria que se abre desde el navegador del televisor.
 Todo lo que hay en este repositorio se publica solo en GitHub Pages: **cualquier
 cambio que hagas aquí aparece en la pantalla en unos minutos**.
 
+## Elegir qué cliente sale en pantalla
+
+Cada anuncio pertenece a una **campaña**. Para cambiar de cliente no hace falta
+tocar ningún archivo: en el televisor, toca la pantalla → **Abrir ajustes** →
+**Campaña en pantalla**, y elige.
+
+El desplegable se rellena solo con las campañas que encuentra y dice cuántos
+anuncios tiene cada una. Con **Todas las campañas** se mezclan todos.
+
+Ahora mismo hay dos: **Pocatino** y **Assoflex**.
+
+### Añadir un cliente nuevo
+
+1. Sube sus imágenes a `anuncios/lateral/`, `anuncios/inferior/` y
+   `anuncios/completa/`, con un nombre que lo identifique.
+2. En [`playlist.json`](playlist.json), añade sus líneas con el nombre de la
+   campaña:
+
+```json
+{ "src": "anuncios/lateral/01-panaderia.jpg", "zona": "lateral", "campana": "La Panadería" },
+{ "src": "anuncios/inferior/01-panaderia.jpg", "zona": "inferior", "campana": "La Panadería" }
+```
+
+Aparecerá sola en el desplegable del televisor.
+
+---
+
 ## Cambiar la publicidad
 
 ### Sustituir un anuncio por otro

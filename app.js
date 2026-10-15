@@ -77,6 +77,8 @@ var CONFIG_POR_DEFECTO = {
   marcoEfecto: 'fundido',   // 'fundido' | 'apertura' | 'deslizar' | 'zoom' | 'ninguno'
   marcoVelocidad: 800,      // milisegundos que dura la entrada o la salida
 
+  campana: '',              // cliente en pantalla; en blanco, salen todos
+
   remoteUrl: '',          // URL de un playlist.json remoto
   fuente: 'ambos',        // 'ambos' | 'local' | 'remoto'
   duracionImagen: 8,      // segundos por imagen
@@ -138,6 +140,7 @@ function normalizar(datos, origen) {
         duracion: Number(item.duracion) > 0 ? Number(item.duracion) : null,
         ajuste: item.ajuste || null,
         zona: item.zona || null,      // 'lateral' | 'inferior' | null (todas)
+        campana: item.campana || '',  // cliente al que pertenece el anuncio
         origen: origen,
         fallos: 0
       };
@@ -401,6 +404,7 @@ Reproductor.prototype.detener = function () {
 
 var reproductores = [];
 var ultimaCarga = null;
+var ultimaLista = [];   // todo lo cargado, sin filtrar por campaña
 
 function zonasDelModo() {
   if (config.modo === 'marco') {
@@ -438,15 +442,34 @@ function reconstruirZonas() {
   });
 }
 
+/** Campañas presentes en una lista, en orden alfabético y sin repetir. */
+function campanasDisponibles(items) {
+  var vistas = {};
+  items.forEach(function (i) { if (i.campana) vistas[i.campana] = true; });
+  return Object.keys(vistas).sort();
+}
+
+/** Deja solo los anuncios del cliente elegido; en blanco, no filtra nada. */
+function filtrarPorCampana(items) {
+  if (!config.campana) return items;
+  return items.filter(function (i) { return i.campana === config.campana; });
+}
+
 function repartir(items, ya) {
+  var visibles = filtrarPorCampana(items);
+
   reproductores.forEach(function (r, posicion) {
-    r.cargar(itemsDeZona(items, r.nombre), ya, posicion);
+    r.cargar(itemsDeZona(visibles, r.nombre), ya, posicion);
   });
 
-  if (items.length === 0) {
-    mostrarVacio('No hay anuncios en la carpeta local ni en el servidor remoto.');
-  } else {
+  if (visibles.length > 0) {
     document.getElementById('vacio').classList.add('oculto');
+  } else if (config.campana) {
+    // Se avisa a proposito en vez de enseñar otra cosa: si alguien elige un
+    // cliente y la pantalla se queda en blanco, tiene que saber por que.
+    mostrarVacio('No hay anuncios de "' + config.campana + '". Revisa la campaña en los ajustes.');
+  } else {
+    mostrarVacio('No hay anuncios en la carpeta local ni en el servidor remoto.');
   }
 }
 
@@ -842,6 +865,7 @@ function iniciarCicloMarco() {
 function refrescar(reiniciarYa) {
   return construirPlaylist().then(function (items) {
     ultimaCarga = new Date();
+    ultimaLista = items;
     aplicarAjustesVisuales();
 
     if (reiniciarYa) {
@@ -903,7 +927,10 @@ function abrirPanel() {
     return lista.filter(function (i) { return i.origen === origen; }).length;
   };
 
+  var campanas = campanasDisponibles(ultimaLista);
+
   var filas = [
+    ['Campaña', config.campana || (campanas.length ? 'todas (' + campanas.join(', ') + ')' : 'sin campañas')],
     ['Modo', config.modo === 'marco' ? 'Marco con video' : 'Pantalla completa']
   ];
 
@@ -986,6 +1013,8 @@ function abrirAjustes() {
     campo.value = guardados[clave] !== undefined ? guardados[clave] : config[clave];
   });
 
+  rellenarCampanas();
+
   // Si ya hay una lista configurada, se traen los canales para que el
   // desplegable muestre cual esta puesto en vez de salir vacio
   if (config.listaCanales) {
@@ -1028,6 +1057,40 @@ formulario.addEventListener('submit', function (evento) {
     aviso.textContent = 'Estos ajustes se guardan en el dispositivo y mandan sobre el config.json.';
   });
 });
+
+/** Vuelca las campañas encontradas en el desplegable de los ajustes. */
+function rellenarCampanas() {
+  var select = formulario.elements['campana'];
+  var aviso = document.getElementById('avisoCampanas');
+  if (!select) return;
+
+  var campanas = campanasDisponibles(ultimaLista);
+
+  select.innerHTML = '';
+  var todas = document.createElement('option');
+  todas.value = '';
+  todas.textContent = 'Todas las campañas';
+  select.appendChild(todas);
+
+  campanas.forEach(function (nombre) {
+    var opcion = document.createElement('option');
+    opcion.value = nombre;
+    opcion.textContent = nombre + ' (' + ultimaLista.filter(function (i) {
+      return i.campana === nombre;
+    }).length + ' anuncios)';
+    if (nombre === config.campana) opcion.selected = true;
+    select.appendChild(opcion);
+  });
+
+  var sinCampana = ultimaLista.filter(function (i) { return !i.campana; }).length;
+
+  if (campanas.length === 0) {
+    aviso.textContent = 'Ningun anuncio lleva campaña: se muestran todos.';
+  } else {
+    aviso.textContent = campanas.length + ' campañas' +
+      (sinCampana ? ', y ' + sinCampana + ' anuncios sin asignar que solo salen en "Todas"' : '') + '.';
+  }
+}
 
 /** Vuelca los canales de una lista en el desplegable de los ajustes. */
 function rellenarCanales(canales) {
