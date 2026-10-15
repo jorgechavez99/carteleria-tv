@@ -66,6 +66,24 @@
       </label>
 
       <label class="campo">
+        <span class="etiqueta">Lista de canales de TV (M3U)</span>
+        <input name="listaCanales" type="url" inputmode="url" placeholder="https://iptv-org.github.io/iptv/countries/pe.m3u">
+        <small>Listas publicas de IPTV-org. Cambia pe por es, mx, ar, cl, co... segun el pais.</small>
+      </label>
+
+      <div class="campo">
+        <button type="button" id="btnCargarCanales" class="boton">Cargar canales de la lista</button>
+      </div>
+
+      <label class="campo">
+        <span class="etiqueta">Canal</span>
+        <select name="canal">
+          <option value="">Ninguno: usar el enlace de arriba</option>
+        </select>
+        <small id="avisoCanales">Pulsa el boton de arriba para traer los canales.</small>
+      </label>
+
+      <label class="campo">
         <span class="etiqueta">Sonido del video</span>
         <select name="videoSonido">
           <option value="no">Silenciado</option>

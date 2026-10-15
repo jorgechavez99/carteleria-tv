@@ -65,6 +65,8 @@ var CONFIG_POR_DEFECTO = {
   modo: 'completa',       // 'completa' | 'marco'
   videoMarco: '',         // stream HLS o video del recuadro (solo en modo marco)
   videoSonido: 'no',      // 'no' | 'si'. Con sonido, algunos TVs no arrancan solos
+  listaCanales: '',       // lista M3U de canales (por ejemplo, de IPTV-org)
+  canal: '',              // nombre del canal elegido dentro de esa lista
   marcoPosicion: 'izquierda',
   marcoLateral: 22,       // ancho de la banda lateral, en % de la pantalla
   marcoInferior: 20,      // alto de la banda inferior, en %
@@ -103,6 +105,20 @@ function aplicarConfig(parcial) {
 
 function ajustesGuardados() {
   return leerCache(CLAVE_AJUSTES) || {};
+}
+
+/**
+ * Lo guardado por el usuario se aplica aunque venga vacio: dejar un campo en
+ * blanco es como se quita un ajuste, y si lo ignorasemos no habria forma de
+ * borrar, por ejemplo, un enlace de video puesto antes.
+ */
+function aplicarAjustesUsuario(parcial) {
+  if (!parcial || typeof parcial !== 'object') return;
+  Object.keys(CONFIG_POR_DEFECTO).forEach(function (clave) {
+    if (parcial[clave] !== undefined && parcial[clave] !== null) {
+      config[clave] = parcial[clave];
+    }
+  });
 }
 
 // -------------------------------------------------------- carga de la lista
@@ -205,12 +221,12 @@ function construirPlaylist() {
     var pedirRemoto = config.fuente !== 'local';
 
     return (pedirRemoto ? cargarRemoto() : Promise.resolve([])).then(function (remotos) {
-      aplicarConfig(ajustesGuardados());
+      aplicarAjustesUsuario(ajustesGuardados());
 
       var lista = remotos.concat(locales);
       if (lista.length > 0) return lista;
       return cargarDemo().then(function (demo) {
-        aplicarConfig(ajustesGuardados());   // la demo trae su propia config
+        aplicarAjustesUsuario(ajustesGuardados());   // la demo trae su propia config
         return demo;
       });
     });
@@ -522,6 +538,157 @@ function enlaceIncrustadoYouTube(enlace, id) {
   return 'https://www.youtube.com/embed/' + id + '?' + parametros.join('&');
 }
 
+// ------------------------------------------------- canales de television
+
+/*
+ * Listas M3U, del estilo de las que publica IPTV-org. Son archivos de texto
+ * con el nombre de cada canal y la direccion de su emision en HLS.
+ */
+
+var HLS_CDN = 'https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js';
+var promesaHls = null;
+
+/** Carga hls.js solo si hace falta: muchos televisores ya reproducen HLS. */
+function cargarHlsJs() {
+  if (window.Hls) return Promise.resolve(window.Hls);
+  if (promesaHls) return promesaHls;
+
+  promesaHls = new Promise(function (resolve) {
+    var guion = document.createElement('script');
+    guion.src = HLS_CDN;
+    guion.onload = function () { resolve(window.Hls || null); };
+    guion.onerror = function () { resolve(null); };
+    document.head.appendChild(guion);
+  });
+  return promesaHls;
+}
+
+function esHls(url) {
+  return /\.m3u8(\?|#|$)/i.test(String(url));
+}
+
+function esListaM3U(url) {
+  return /\.m3u(\?|#|$)/i.test(String(url));
+}
+
+/** Un canal cuya direccion va por http no carga si la pagina va por https. */
+function bloqueadoPorMezcla(url) {
+  return location.protocol === 'https:' && /^http:\/\//i.test(String(url));
+}
+
+/** Saca los canales de un archivo M3U. */
+function interpretarM3U(texto) {
+  var canales = [];
+  var pendiente = null;
+
+  String(texto).split(/\r?\n/).forEach(function (linea) {
+    linea = linea.trim();
+    if (!linea) return;
+
+    if (linea.indexOf('#EXTINF') === 0) {
+      // El nombre va detras de la ultima coma de la cabecera
+      var coma = linea.lastIndexOf(',');
+      var logo = linea.match(/tvg-logo="([^"]*)"/);
+      var grupo = linea.match(/group-title="([^"]*)"/);
+      pendiente = {
+        nombre: coma === -1 ? 'Canal' : linea.slice(coma + 1).trim(),
+        logo: logo ? logo[1] : '',
+        grupo: grupo ? grupo[1] : ''
+      };
+      return;
+    }
+
+    if (linea.charAt(0) === '#') return;     // otras directivas, se ignoran
+
+    if (pendiente) {
+      pendiente.url = linea;
+      canales.push(pendiente);
+      pendiente = null;
+    }
+  });
+
+  return canales;
+}
+
+/** Descarga e interpreta una lista, con copia local por si se cae la red. */
+function cargarCanales(url) {
+  if (!url) return Promise.resolve([]);
+
+  return fetch(url, { cache: 'no-store' })
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    })
+    .then(function (texto) {
+      var canales = interpretarM3U(texto);
+      if (canales.length) guardarCache('canales_' + url, canales);
+      return canales;
+    })
+    .catch(function (e) {
+      log('no se pudo leer la lista de canales (' + e.message + ')');
+      return leerCache('canales_' + url) || [];
+    });
+}
+
+/** Dirección del canal elegido, o cadena vacía si no hay ninguno. */
+function urlDelCanal() {
+  if (!config.canal || !config.listaCanales) return Promise.resolve('');
+
+  return cargarCanales(config.listaCanales).then(function (canales) {
+    var elegido = canales.filter(function (c) { return c.nombre === config.canal; })[0];
+    return elegido ? elegido.url : '';
+  });
+}
+
+/**
+ * Pone un stream HLS en marcha.
+ *
+ * Primero se prueba el reproductor del propio aparato y, si falla, se recurre
+ * a hls.js. El orden importa: canPlayType suele contestar "maybe", que no
+ * garantiza nada, asi que no basta con preguntar; hay que tener preparado el
+ * plan B para cuando el intento nativo se caiga.
+ */
+function reproducirHls(video, url) {
+  var intentadoConBiblioteca = false;
+
+  function rendirse(motivo) {
+    mostrarAvisoVideo('El canal no responde (' + motivo + '). Reintentando...');
+    reintentoVideo = setTimeout(configurarVideoMarco, 15000);
+  }
+
+  function conBiblioteca() {
+    if (intentadoConBiblioteca) return;
+    intentadoConBiblioteca = true;
+
+    cargarHlsJs().then(function (Hls) {
+      if (!Hls || !Hls.isSupported()) {
+        rendirse('este aparato no puede reproducirlo');
+        return;
+      }
+
+      var motor = new Hls({ enableWorker: true, lowLatencyMode: false });
+      motor.loadSource(url);
+      motor.attachMedia(video);
+      motor.on(Hls.Events.ERROR, function (evento, datos) {
+        if (datos && datos.fatal) {
+          motor.destroy();
+          rendirse('error de emision');
+        }
+      });
+      video.play().catch(function () {});
+    });
+  }
+
+  if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = url;
+    video.addEventListener('error', conBiblioteca, { once: true });
+    video.play().catch(conBiblioteca);
+    return;
+  }
+
+  conBiblioteca();
+}
+
 function mostrarAvisoVideo(texto) {
   var aviso = document.getElementById('avisoVideo');
   aviso.textContent = texto;
@@ -539,17 +706,35 @@ function configurarVideoMarco() {
 
   if (config.modo !== 'marco') return;
 
-  if (!config.videoMarco) {
-    mostrarAvisoVideo('Falta el enlace del video. Pulsa OK y entra en los ajustes.');
+  // Un canal de television elegido manda sobre el enlace suelto
+  urlDelCanal().then(function (desdeCanal) {
+    montarVideoMarco(desdeCanal || config.videoMarco);
+  });
+}
+
+function montarVideoMarco(enlace) {
+  var hueco = document.getElementById('reproductorMarco');
+  var aviso = document.getElementById('avisoVideo');
+
+  if (!enlace) {
+    mostrarAvisoVideo('Falta el enlace del video. Toca la pantalla y entra en los ajustes.');
     return;
   }
 
-  var id = idYouTube(config.videoMarco);
+  if (bloqueadoPorMezcla(enlace)) {
+    mostrarAvisoVideo(
+      'Este canal emite por http y el navegador lo bloquea en una pagina segura. ' +
+      'Elige otro canal de la lista: la mayoria ya emiten por https.'
+    );
+    return;
+  }
+
+  var id = idYouTube(enlace);
 
   if (id) {
     // YouTube no sirve el archivo de video, asi que va su propio reproductor
     var marco = document.createElement('iframe');
-    marco.src = enlaceIncrustadoYouTube(config.videoMarco, id);
+    marco.src = enlaceIncrustadoYouTube(enlace, id);
     marco.allow = 'autoplay; encrypted-media; picture-in-picture';
     marco.setAttribute('frameborder', '0');
     marco.setAttribute('allowfullscreen', '');
@@ -563,16 +748,26 @@ function configurarVideoMarco() {
   video.autoplay = true;
   video.playsInline = true;
   video.controls = false;
-  video.loop = true;        // para un archivo; en un directo no estorba
-  video.src = config.videoMarco;
+  // Un archivo se repite; un canal en directo no termina nunca, asi que da igual
+  video.loop = !esHls(enlace);
+
+  video.onplaying = function () { aviso.classList.add('oculto'); };
+
+  hueco.appendChild(video);
+
+  if (esHls(enlace)) {
+    // Los errores los gestiona reproducirHls, que antes de darse por vencido
+    // reintenta con hls.js; un onerror aqui le cortaria ese segundo intento.
+    mostrarAvisoVideo('Conectando con el canal...');
+    reproducirHls(video, enlace);
+    return;
+  }
 
   video.onerror = function () {
     mostrarAvisoVideo('No se pudo reproducir el video. Reintentando...');
     reintentoVideo = setTimeout(configurarVideoMarco, 10000);
   };
-  video.onplaying = function () { aviso.classList.add('oculto'); };
-
-  hueco.appendChild(video);
+  video.src = enlace;
   video.play().catch(function () { /* el TV puede permitirlo igual */ });
 }
 
@@ -791,6 +986,13 @@ function abrirAjustes() {
     campo.value = guardados[clave] !== undefined ? guardados[clave] : config[clave];
   });
 
+  // Si ya hay una lista configurada, se traen los canales para que el
+  // desplegable muestre cual esta puesto en vez de salir vacio
+  if (config.listaCanales) {
+    document.getElementById('avisoCanales').textContent = 'Cargando canales...';
+    cargarCanales(config.listaCanales).then(rellenarCanales);
+  }
+
   document.getElementById('ajustes').classList.remove('oculto');
   var primero = formulario.elements['modo'];
   if (primero) primero.focus();
@@ -804,12 +1006,13 @@ formulario.addEventListener('submit', function (evento) {
     var campo = formulario.elements[clave];
     if (!campo) return;
     var valor = campo.value.trim();
-    if (valor === '') return;                    // vacio = no fijar nada
     if (typeof CONFIG_POR_DEFECTO[clave] === 'number') {
+      // Un numero en blanco se deja como estaba, no vale poner "nada"
+      if (valor === '') return;
       var numero = Number(valor);
       if (!isNaN(numero)) nuevos[clave] = numero;
     } else {
-      nuevos[clave] = valor;
+      nuevos[clave] = valor;                     // en blanco = quitar el ajuste
     }
   });
 
@@ -824,6 +1027,51 @@ formulario.addEventListener('submit', function (evento) {
     aviso.classList.remove('guardado');
     aviso.textContent = 'Estos ajustes se guardan en el dispositivo y mandan sobre el config.json.';
   });
+});
+
+/** Vuelca los canales de una lista en el desplegable de los ajustes. */
+function rellenarCanales(canales) {
+  var select = formulario.elements['canal'];
+  var aviso = document.getElementById('avisoCanales');
+  var elegido = config.canal;
+
+  select.innerHTML = '';
+  var ninguno = document.createElement('option');
+  ninguno.value = '';
+  ninguno.textContent = 'Ninguno: usar el enlace de arriba';
+  select.appendChild(ninguno);
+
+  var descartados = 0;
+  canales.forEach(function (canal) {
+    // Un canal por http no se puede ver desde una pagina segura: no se ofrece
+    if (bloqueadoPorMezcla(canal.url)) { descartados++; return; }
+
+    var opcion = document.createElement('option');
+    opcion.value = canal.nombre;
+    opcion.textContent = canal.nombre;
+    if (canal.nombre === elegido) opcion.selected = true;
+    select.appendChild(opcion);
+  });
+
+  if (canales.length === 0) {
+    aviso.textContent = 'No se pudo leer esa lista. Comprueba la direccion.';
+  } else {
+    aviso.textContent = (select.options.length - 1) + ' canales disponibles' +
+      (descartados ? ' (' + descartados + ' descartados por emitir sin cifrar)' : '') + '.';
+  }
+}
+
+document.getElementById('btnCargarCanales').addEventListener('click', function () {
+  var url = formulario.elements['listaCanales'].value.trim();
+  var aviso = document.getElementById('avisoCanales');
+
+  if (!url) {
+    aviso.textContent = 'Escribe antes la direccion de una lista.';
+    return;
+  }
+
+  aviso.textContent = 'Cargando canales...';
+  cargarCanales(url).then(rellenarCanales);
 });
 
 document.getElementById('btnAjustes').addEventListener('click', abrirAjustes);
